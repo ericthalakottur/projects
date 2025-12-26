@@ -6,6 +6,7 @@
 #define GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include "task.h"
 
 // Volk headers
 #ifdef IMGUI_IMPL_VULKAN_USE_VOLK
@@ -417,8 +418,10 @@ int main(int, char**)
     init_info.CheckVkResultFn = check_vk_result;
     ImGui_ImplVulkan_Init(&init_info);
 
-    // Our state
+    // State
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    static Tasks tasks = Tasks();
+    static char task_name[TASK_NAME_MAX_LENGTH] = "";
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -446,24 +449,38 @@ int main(int, char**)
         ImGui::NewFrame();
 
         {
-            static float f = 0.0f;
-            static int counter = 0;
+            ImGui::Begin("Task List");
 
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+            static ImGuiTableFlags flags = ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV;
+            if (ImGui::BeginTable("Task List", 2, flags))
+            {
+                ImGui::TableSetupColumn("TODO");
+                ImGui::TableSetupColumn("Completed");
+                ImGui::TableHeadersRow();
+                ImGui::TableNextRow();
+                for (Task &task: tasks.get_pending_tasks())
+                {
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::Checkbox(task.get_name(), &task.completed);
+                    ImGui::TableNextRow();
+                }
+                for (Task &task: tasks.get_completed_tasks())
+                {
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Checkbox(task.get_name(), &task.completed);
+                    ImGui::TableNextRow();
+                }
+                ImGui::EndTable();
 
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);
+                tasks.update_task_list();
+            }
 
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+            ImGui::InputText("New Task", task_name, TASK_NAME_MAX_LENGTH);
+            if(ImGui::Button("Create Task") && strlen(task_name) > 0) {
+                tasks.add_task(task_name);
+                memset(task_name, 0, TASK_NAME_MAX_LENGTH);
+            }
 
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
-
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
             ImGui::End();
         }
 

@@ -14,9 +14,9 @@
 #CXX = g++
 #CXX = clang++
 
-EXE = example_app
+EXE = todo_list_app
 IMGUI_DIR = imgui
-SOURCES = main.cpp
+SOURCES = main.cpp task.cpp
 SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_demo.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
 SOURCES += $(IMGUI_DIR)/backends/imgui_impl_glfw.cpp $(IMGUI_DIR)/backends/imgui_impl_vulkan.cpp
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
